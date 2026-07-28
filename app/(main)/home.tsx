@@ -1,0 +1,29 @@
+import Button from '@/components/Button'
+import ScreenWrapper from '@/components/ScreenWrapper'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import React from 'react'
+import { Alert, StyleSheet, Text } from 'react-native'
+
+const Home = () => {
+
+  const {setAuth} = useAuth();
+  
+  async function onLogout() {
+    setAuth(null);
+    const {error} = await supabase.auth.signOut();
+    if (error) {
+      Alert.alert('Sign out', 'Error signing out')
+    }
+  }
+  return (
+    <ScreenWrapper>
+      <Text>Home</Text>
+      <Button title='logout' onPress={() => onLogout()}/>
+    </ScreenWrapper>
+  )
+}
+
+export default Home
+
+const styles = StyleSheet.create({})

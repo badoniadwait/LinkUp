@@ -1,8 +1,56 @@
-import { Stack } from 'expo-router'
+import { AuthProvider, useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
+import { getUserdata } from '@/service/userService'
+import { User as AuthUser } from "@supabase/supabase-js"
+import { Stack, useRouter } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
+
+type User = {
+    id: string;
+    created_at: string;
+    name: string | null;
+    image: string | null;
+    bio: string | null;
+    email: string | null;
+    address: string | null;
+    phoneNumber: string | null;
+};
 
 const _layout = () => {
+    return (
+        <AuthProvider>
+            <MainLayout />
+        </AuthProvider>
+    )
+}
+
+const MainLayout = () => {
+
+    const { setUserData, setAuth } = useAuth();
+    const router = useRouter();
+
+    const [users, setUsers] = useState<User[] | null>([]);
+    useEffect(() => {
+        supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                setAuth(session?.user);
+                updateUserData(session?.user);
+                router.replace('/(main)/home')
+            }
+            else {
+                setAuth(null);
+                router.replace('/welcome')
+            }
+        })
+    }, [])
+
+
+    async function updateUserData(user: AuthUser) {
+        let res = await getUserdata(user?.id);
+        if (res?.success)
+            setUserData(res.data);
+    }
 
     return (
         <>
@@ -15,4 +63,4 @@ const _layout = () => {
     )
 }
 
-export default _layout
+export default _layout;
