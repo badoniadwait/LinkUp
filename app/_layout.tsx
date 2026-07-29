@@ -1,21 +1,12 @@
-import { AuthProvider, useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
-import { getUserdata } from '@/service/userService'
-import { User as AuthUser } from "@supabase/supabase-js"
-import { Stack, useRouter } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
-import React, { useEffect, useState } from 'react'
+import type { User } from "@/components/types/Users";
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase';
+import { getUserdata } from '@/service/userService';
+import { User as AuthUser } from "@supabase/supabase-js";
+import { Stack, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useEffect, useState } from 'react';
 
-type User = {
-    id: string;
-    created_at: string;
-    name: string | null;
-    image: string | null;
-    bio: string | null;
-    email: string | null;
-    address: string | null;
-    phoneNumber: string | null;
-};
 
 const _layout = () => {
     return (
