@@ -3,7 +3,7 @@ import { Avatar } from '@/components/Avatar'
 import ScreenWrapper from '@/components/ScreenWrapper'
 import { theme } from '@/constants/theme'
 import { useAuth } from '@/contexts/AuthContext'
-import { hp } from '@/helpers/common'
+import { hp, wp } from '@/helpers/common'
 import { useRouter } from 'expo-router'
 import React from 'react'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
@@ -40,5 +40,23 @@ const Home = () => {
 export default Home
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1,
+    paddingHorizontal: wp(4),
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: hp(3),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.textDark,
+  },
+  icons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
+  },
 })

@@ -120,7 +120,41 @@ export default Profile
 
 const styles = StyleSheet.create({
   container: {
-
-  }
-
+    flex: 1,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+  },
+  editIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: wp(32),
+    backgroundColor: theme.colors.primary,
+    padding: 6,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: 'white',
+  },
+  userName: {
+    fontSize: hp(3),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.textDark,
+  },
+  infoText: {
+    fontSize: hp(1.6),
+    color: theme.colors.textLight,
+    fontWeight: theme.fonts.medium,
+  },
+  info: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoutButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 10,
+    zIndex: 1,
+  },
 })
