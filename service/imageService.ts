@@ -1,4 +1,4 @@
-export function getUserImageSrc(imagePath: string | null) {
+export function getUserImageSrc(imagePath: string | null | undefined) {
     if(imagePath) {
         return {uri: imagePath};
     }
