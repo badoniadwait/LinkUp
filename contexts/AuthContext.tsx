@@ -1,7 +1,8 @@
+import { User } from "@/components/types/Users";
 import React, { createContext, useContext, useState } from "react";
 
 type AuthContextType = {
-  user: any;
+  user: User | null;
   setAuth: (authUser: any) => void;
   setUserData: (userData: any) => void;
 };

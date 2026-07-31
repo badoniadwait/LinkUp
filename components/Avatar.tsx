@@ -6,7 +6,7 @@ import React from 'react'
 import { StyleProp, StyleSheet, ViewStyle } from 'react-native'
 
 export const Avatar = ({ uri, size = hp(4.5), rounded = theme.radius.md, style = {} }: {
-    uri: string | null,
+    uri: string | null | undefined,
     size?: number,
     rounded?: number,
     style?: StyleProp<ViewStyle>

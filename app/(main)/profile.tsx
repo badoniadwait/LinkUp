@@ -83,7 +83,7 @@ const UserHeader = ({ user, router, handleLogout }:
             </Text>
           </View>
 
-          <View style={{ gap: 10 }}>
+          <View style={{alignItems:'center', gap: 10 }}>
 
             <View style={styles.info}>
               <Icon name={'mail'} size={20} color={theme.colors.textLight} />
@@ -144,11 +144,15 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6),
     color: theme.colors.textLight,
     fontWeight: theme.fonts.medium,
+    alignSelf:'center',
+    textAlign:'center',
   },
   info: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+    alignSelf: 'center',
+    textAlign: 'center'
   },
   logoutButton: {
     position: 'absolute',
