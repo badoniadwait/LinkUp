@@ -13,7 +13,7 @@ export async function getUserdata(userId: string) {
     }
 }
 
-export async function updateUser(userId: string, data: User) {
+export async function updateUser(userId: string | null | undefined, data: User) {
     try {
         const { error } = await supabase.from("users").update(data).eq('id', userId);
         if (error) {
