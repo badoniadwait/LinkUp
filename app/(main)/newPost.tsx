@@ -133,43 +133,44 @@ const NewPost = () => {
                 Public
               </Text>
             </View>
-
-            <View style={
-              styles.textEditor
-            }>
-              <RichTextEditor editorRef={editorRef} onChange={(body) => bodyRef.current = body} />
-            </View>
-
-            {file && (
-              <View style={styles.file}>
-                {getFileType(file) === 'video' ? (
-                  <VideoView
-                    player={player}
-                    style={{ flex: 1 }}
-                    nativeControls
-                    contentFit="cover"
-                  />
-                ) : (
-                  <Image
-                    source={{ uri: getFileUri(file)! }}
-                    style={{ flex: 1 }}
-                    contentFit="cover"
-                  />
-                )}
-
-                <Pressable
-                  style={styles.closeIcon}
-                  onPress={() => {
-                    player.pause();
-                    setFile(null);
-                  }}
-                >
-                  <Icon name="delete" size={20} color="white" />
-                </Pressable>
-              </View>
-            )}
-
           </View>
+
+
+          <View style={
+            styles.textEditor
+          }>
+            <RichTextEditor editorRef={editorRef} onChange={(body) => bodyRef.current = body} />
+          </View>
+
+          {file && (
+            <View style={styles.file}>
+              {getFileType(file) === 'video' ? (
+                <VideoView
+                  player={player}
+                  style={{ flex: 1 }}
+                  nativeControls
+                  contentFit="cover"
+                />
+              ) : (
+                <Image
+                  source={{ uri: getFileUri(file)! }}
+                  style={{ flex: 1 }}
+                  contentFit="cover"
+                />
+              )}
+
+              <Pressable
+                style={styles.closeIcon}
+                onPress={() => {
+                  player.pause();
+                  setFile(null);
+                }}
+              >
+                <Icon name="delete" size={20} color="white" />
+              </Pressable>
+            </View>
+          )}
+
 
           <View style={styles.media}>
             <Text style={styles.addImageText}>Add to your Post</Text>
@@ -207,11 +208,62 @@ const NewPost = () => {
 export default NewPost;
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: hp(2.5),
+    paddingBottom: hp(1.5),
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: hp(2),
+  },
+  username: {
+    fontSize: hp(2.2),
+    fontWeight: theme.fonts.bold,
+    color: theme.colors.textDark,
+  },
+  publicText: {
+    fontSize: hp(1.5),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.textLight,
+  },
+  textEditor: {},
   file: {
-    height: hp(30),
+    height: hp(26),
     width: '100%',
     borderRadius: theme.radius.xl,
     overflow: 'hidden',
     borderCurve: 'continuous',
-  }
+    borderWidth: 1,
+    borderColor: theme.colors.darkLight,
+  },
+  closeIcon: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 8,
+    borderRadius: 50,
+    backgroundColor: theme.colors.rose,
+  },
+  media: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: theme.colors.darkLight,
+    borderRadius: theme.radius.xl,
+    paddingVertical: hp(1.5),
+    paddingHorizontal: hp(2),
+  },
+  addImageText: {
+    fontSize: hp(1.8),
+    fontWeight: theme.fonts.semibold,
+    color: theme.colors.text,
+  },
+  mediaIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: hp(2.5),
+  },
 })
