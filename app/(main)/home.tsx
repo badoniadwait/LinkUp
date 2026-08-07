@@ -109,25 +109,30 @@ export default Home
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: wp(4),
+    paddingHorizontal: wp(5),
+    paddingTop: hp(0.5),
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: hp(1.5),
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.colors.gray,
   },
   title: {
     fontSize: hp(3),
     fontWeight: theme.fonts.bold,
     color: theme.colors.textDark,
+    letterSpacing: 0.5,
   },
   icons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    gap: wp(4),
   },
   listStyle: {
-    paddingHorizontal: wp(4),
-    paddingTop: 20,
+    paddingTop: hp(1.8),
+    paddingBottom: hp(1),
   }
 })

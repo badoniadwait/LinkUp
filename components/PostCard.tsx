@@ -130,9 +130,6 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
                     </TouchableOpacity>
                     <Text style={styles.count}>{likes?.length}</Text>
                 </View>
-            </View>
-
-            <View style={styles.footer} >
                 <View style={styles.footerButton}>
                     <TouchableOpacity >
                         <Icon name='comment' color={theme.colors.textLight} size={24} />
@@ -141,9 +138,6 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
                         0
                     </Text>
                 </View>
-            </View>
-
-            <View style={styles.footer} >
                 <View style={styles.footerButton}>
                     <TouchableOpacity >
                         <Icon name='share' color={theme.colors.textLight} size={24} />
@@ -161,7 +155,11 @@ const styles = StyleSheet.create({
     container: {
         backgroundColor: 'white',
         borderRadius: theme.radius.xxl,
-        padding: wp(4),
+        borderWidth: 1,
+        borderColor: theme.colors.gray,
+        borderCurve: 'continuous',
+        paddingHorizontal: wp(4),
+        paddingVertical: hp(1.8),
         marginBottom: hp(2),
     },
 
@@ -178,14 +176,14 @@ const styles = StyleSheet.create({
     },
 
     username: {
-        color: theme.colors.text,
-        fontSize: hp(1.8),
-        fontWeight: '600',
+        color: theme.colors.textDark,
+        fontSize: hp(1.9),
+        fontWeight: theme.fonts.semibold,
     },
 
     postTime: {
         color: theme.colors.textLight,
-        fontSize: hp(1.5),
+        fontSize: hp(1.4),
     },
 
     content: {
@@ -200,6 +198,31 @@ const styles = StyleSheet.create({
         width: '100%',
         height: hp(35),
         borderRadius: theme.radius.xl,
+        borderCurve: 'continuous',
         overflow: 'hidden',
+        backgroundColor: theme.colors.gray,
+        marginBottom: hp(0.5),
+    },
+
+    footer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: hp(1),
+        borderTopWidth: 0.5,
+        borderTopColor: theme.colors.gray,
+    },
+
+    footerButton: {
+        marginTop: 9,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: wp(2),
+    },
+
+    count: {
+        fontSize: hp(1.7),
+        color: theme.colors.textLight,
+        fontWeight: theme.fonts.semibold,
     },
 });
