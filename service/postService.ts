@@ -30,26 +30,66 @@ export async function createUpdatePost(post: {
         console.log('create post error ', error);
         return { success: false, msg: 'could not create post' };
     }
-}
+};
 
 export async function fetchPosts(limit = 10) {
     try {
-    const {data, error} = await supabase.from('posts')
-    .select('*, user: users (id, name, image)')
-    .order('created_at', {ascending: false}).limit(limit);
+        const { data, error } = await supabase.from('posts')
+            .select('*, user: users (id, name, image), postLikes (*)')
+            .order('created_at', { ascending: false }).limit(limit);
 
-    if(error) {
-        console.log('fetch post error ', error);
-        return { success: false, msg: 'could not fetch post' };
-    }
-    else {
-        return { success: true, data };
+        if (error) {
+            console.log('fetch post error ', error);
+            return { success: false, msg: 'could not fetch post' };
+        }
+        else {
+            return { success: true, data };
 
-    }
+        }
 
     } catch (error) {
         console.log('fetch post error ', error);
         return { success: false, msg: 'could not fetch post' };
     }
 
-}
+};
+
+
+export async function createPostLike(postLike) {
+    try {
+        const { data, error } = await supabase.from('postLikes')
+            .insert(postLike).select().single();
+
+        if (error) {
+            console.log('post like error ', error);
+            return { success: false, msg: 'could not like post' };
+        }
+        return { success: true, data };
+
+
+    } catch (error) {
+        console.log('post like error ', error);
+        return { success: false, msg: 'could not like post' };
+    }
+
+};
+
+export async function removePostLike(postId: string, userId: string | undefined) {
+    try {
+        const { error } = await supabase.from('postLikes')
+            .delete().eq('userId', userId).eq('postId', postId)
+
+        if (error) {
+            console.log('post unlike error ', error);
+            return { success: false, msg: 'could not unlike post' };
+        }
+        return {
+            success: true,
+        };
+
+    } catch (error) {
+        console.log('post unlike error ', error);
+        return { success: false, msg: 'could not unlike post' };
+    }
+
+};
