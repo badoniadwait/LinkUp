@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { decode } from 'base64-arraybuffer';
 import { File } from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { ImagePickerAsset } from 'expo-image-picker';
 
 export function getUserImageSrc(imagePath: string | ImagePickerAsset | null | undefined) {
@@ -55,4 +56,28 @@ export function getSupabaseFileUrl(filePath: string | null) {
         return { uri: `${process.env.EXPO_PUBLIC_SUPABASE_URL}/storage/v1/object/public/uploads/${filePath}` };
     }
     return null;
+}
+
+export function getLocalFilePath(filePath: string) {
+    const fileName = filePath.split('/').pop();
+
+    return `${FileSystem.cacheDirectory}${fileName}`;
+}
+
+export async function downloadFile(url: string) {
+    try {
+        const localPath = getLocalFilePath(url);
+
+
+        const result = await FileSystem.downloadAsync(
+            url,
+            localPath
+        );
+
+
+        return result.uri;
+
+    } catch (error) {
+        return null;
+    }
 }

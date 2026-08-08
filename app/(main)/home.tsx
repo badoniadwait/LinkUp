@@ -21,16 +21,20 @@ const Home = () => {
   const { user, setAuth } = useAuth();
 
   const [posts, setPosts] = useState([]);
+  const [hasMore, setHasMore] = useState(true);
 
 
   const getPosts = async () => {
-    limit = limit + 10;
+
+    if (!hasMore) return null;
+    limit = limit + 4;
 
     console.log('fetching posts: ', limit);
 
     const res = await fetchPosts(limit);
 
     if (res.success) {
+      if (posts.length == res.data.length) setHasMore(false);
       setPosts(res.data);
     }
   }
@@ -89,12 +93,27 @@ const Home = () => {
               router={router}
             />
           }
+
+          onEndReached={() => {
+            getPosts();
+          }}
+
+          onEndReachedThreshold={0}
+
+
+
           ListFooterComponent={
-            (
+            hasMore ? (
               <View style={{
                 marginVertical: posts.length == 0 ? 200 : 30
               }}>
                 <Loading />
+              </View>
+            ) : (
+              <View style={{ marginVertical: 30, }}>
+                <Text style={styles.noPosts}>
+                  no more posts
+                </Text>
               </View>
             )
           }
@@ -134,5 +153,12 @@ const styles = StyleSheet.create({
   listStyle: {
     paddingTop: hp(1.8),
     paddingBottom: hp(1),
-  }
+  },
+  noPosts: {
+    textAlign: 'center',
+    fontSize: hp(1.8),
+    color: theme.colors.gray,
+    fontWeight: theme.fonts.medium,
+    marginTop: hp(1),
+  },
 })
