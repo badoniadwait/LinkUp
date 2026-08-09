@@ -1,5 +1,6 @@
 import Icon from '@/assets/icons'
 import { theme } from '@/constants/theme'
+import { hp, wp } from '@/helpers/common'
 import moment from 'moment'
 import React from 'react'
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
@@ -52,5 +53,30 @@ export const CommentItem = ({ item, canDelete = false, onDelete }: { item: Comme
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    gap: wp(2),
+  },
 
+  content: {
+    backgroundColor: 'rgba(0,0,0,0.06)',
+    flex: 1,
+    gap: 5,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: theme.radius.md,
+    borderCurve: 'continuous',
+  },
+
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
+
+  text: {
+    fontSize: hp(1.6),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.textDark,
+  },
 })

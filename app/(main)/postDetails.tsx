@@ -6,7 +6,7 @@ import PostCard from '@/components/PostCard';
 import { Comment } from '@/components/types/Comment';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
-import { hp } from '@/helpers/common';
+import { hp, wp } from '@/helpers/common';
 import { supabase } from '@/lib/supabase';
 import { createComment, fetchPostDetails, removeComment } from '@/service/postService';
 import { getUserdata } from '@/service/userService';
@@ -162,7 +162,9 @@ const PostDetails = () => {
             )
           }
 
-          <View style={{ marginVertical: 15, gap: 17 }}>
+        </View>
+
+        <View style={styles.commentList}>
             {
               post?.comments?.map((comment) => (
                 <CommentItem
@@ -176,13 +178,11 @@ const PostDetails = () => {
 
             {
               post?.comments?.length == 0 && (
-                <Text style={{ color: theme.colors.text, marginLeft: 5 }}>
+                <Text style={styles.noComments}>
                   Be first to comment on this post!
                 </Text>
               )
             }
-
-          </View>
 
         </View>
 
@@ -193,4 +193,62 @@ const PostDetails = () => {
 
 export default PostDetails
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
+
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  list: {
+    paddingHorizontal: wp(4),
+    paddingTop: hp(1),
+    paddingBottom: hp(2),
+  },
+
+  notFound: {
+    fontSize: hp(2.5),
+    color: theme.colors.text,
+    fontWeight: theme.fonts.medium,
+  },
+
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(3),
+    paddingTop: hp(1.2),
+  },
+
+  loading: {
+    height: hp(5.8),
+    width: hp(5.8),
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  sendIcon: {
+    height: hp(5.8),
+    width: hp(5.8),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 0.8,
+    borderColor: theme.colors.primary,
+    borderRadius: theme.radius.lg,
+    borderCurve: 'continuous',
+  },
+
+  commentList: {
+    marginVertical: 15,
+    gap: 17,
+  },
+
+  noComments: {
+    color: theme.colors.text,
+    marginLeft: 5,
+  },
+})
