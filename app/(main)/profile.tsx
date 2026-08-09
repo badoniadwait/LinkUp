@@ -33,9 +33,6 @@ const Profile = () => {
     Alert.alert('Confirm', 'Are you sure you want to logout?', [
       {
         text: "Cancel",
-        onPress: () => {
-          console.log('canceled')
-        },
         style: 'cancel',
       },
       {
