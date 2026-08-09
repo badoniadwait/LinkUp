@@ -32,11 +32,12 @@ const tagStyles = {
     },
 }
 
-const PostCard = ({ item, currentUser, router, hasShadow = true }: {
+const PostCard = ({ item, currentUser, router, hasShadow = true, showMoreIcon = true }: {
     item: any;
     currentUser: User | null;
     router: Router;
     hasShadow?: boolean;
+    showMoreIcon?: boolean;
 }) => {
 
     const [loading, setLoading] = useState(false);
@@ -98,7 +99,6 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
 
             setLikes([...updateLikes])
             let res = await removePostLike(item?.id, currentUser?.id);
-            console.log('removed like', res);
 
             if (!res?.success) {
                 Alert.alert('Post', 'something went wrong!');
@@ -112,7 +112,6 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
 
             setLikes([...likes, data])
             let res = await createPostLike(data);
-            console.log('added like', res);
 
             if (!res?.success) {
                 Alert.alert('Post', 'something went wrong!');
@@ -151,6 +150,7 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
     const createdAt = moment(item?.created_at).format('MMM D')
 
     function openPostDetails() {
+        if (!showMoreIcon) return null;
         router.push({ pathname: '/postDetails', params: { postId: item?.id } })
     }
 
@@ -170,9 +170,13 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
 
                 </View>
 
-                <TouchableOpacity onPress={openPostDetails}>
-                    <Icon name='threeDotsHorizontal' size={hp(3.5)} strokeWidth={3} color={theme.colors.text}></Icon>
-                </TouchableOpacity>
+                {
+                    showMoreIcon && (
+                        <TouchableOpacity onPress={openPostDetails}>
+                            <Icon name='threeDotsHorizontal' size={hp(3.5)} strokeWidth={3} color={theme.colors.text}></Icon>
+                        </TouchableOpacity>
+                    )
+                }
 
             </View>
 
@@ -224,7 +228,7 @@ const PostCard = ({ item, currentUser, router, hasShadow = true }: {
                         <Icon name='comment' color={theme.colors.textLight} size={24} />
                     </TouchableOpacity>
                     <Text style={styles.count}>
-                        0
+                        {item?.comments[0]?.count}
                     </Text>
                 </View>
                 <View style={styles.footerButton}>

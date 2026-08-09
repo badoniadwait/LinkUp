@@ -29,7 +29,6 @@ const Home = () => {
     if (!hasMore) return null;
     limit = limit + 4;
 
-    console.log('fetching posts: ', limit);
 
     const res = await fetchPosts(limit);
 
@@ -42,24 +41,48 @@ const Home = () => {
   async function handlePostEvent(payload) {
     if (payload.eventType == 'INSERT' && payload?.new?.id) {
       let newPost = { ...payload.new };
-      let res = await getUserdata(newPost.usserId);
+      let res = await getUserdata(newPost.userId);
       newPost.user = res.success ? res.data : {};
       setPosts((prev) => [newPost, ...prev]);
     }
   }
 
   useEffect(() => {
+    let postChannel: ReturnType<typeof supabase.channel> | null = null;
 
-    let postChannel = supabase
-      .channel('posts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, handlePostEvent)
-      .subscribe();
+    const setupRealtime = async () => {
+      const existingChannels = supabase.getChannels();
 
-    getPosts();
+      for (const channel of existingChannels) {
+        if (channel.topic === 'realtime:posts') {
+          await supabase.removeChannel(channel);
+        }
+      }
+
+      postChannel = supabase
+        .channel('posts')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'posts',
+          },
+          handlePostEvent
+        )
+        .subscribe();
+
+      await getPosts();
+    };
+
+    setupRealtime();
 
     return () => {
-      supabase.removeChannel(postChannel);
-    }
+      if (postChannel) {
+        supabase.removeChannel(postChannel);
+        postChannel = null;
+      }
+    };
   }, []);
 
   // async function onLogout() {
@@ -161,4 +184,4 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.medium,
     marginTop: hp(1),
   },
-})
+});
