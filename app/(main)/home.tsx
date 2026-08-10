@@ -9,8 +9,8 @@ import { hp, wp } from '@/helpers/common'
 import { supabase } from '@/lib/supabase'
 import { fetchPosts } from '@/service/postService'
 import { getUserdata } from '@/service/userService'
-import { useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
+import { useFocusEffect, useRouter } from 'expo-router'
+import React, { useCallback, useEffect, useState } from 'react'
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 
 let limit = 0;
@@ -38,17 +38,118 @@ const Home = () => {
     }
   }
 
+
+
   async function handlePostEvent(payload) {
     if (payload.eventType == 'INSERT' && payload?.new?.id) {
       let newPost = { ...payload.new };
+
       let res = await getUserdata(newPost.userId);
+
       newPost.user = res.success ? res.data : {};
+
       setPosts((prev) => [newPost, ...prev]);
     }
   }
 
+  async function handleCommentEvent(payload) {
+    // COMMENT CREATED
+    if (payload.eventType === 'INSERT') {
+      const postId = payload.new?.postId;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (String(post.id) !== String(postId)) {
+            return post;
+          }
+
+          const currentCount = post?.comments?.[0]?.count || 0;
+
+          return {
+            ...post,
+            comments: [
+              {
+                count: currentCount + 1,
+              },
+            ],
+          };
+        })
+      );
+    }
+
+    // COMMENT DELETED
+    if (payload.eventType === 'DELETE') {
+      const postId = payload.old?.postId;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (String(post.id) !== String(postId)) {
+            return post;
+          }
+
+          const currentCount = post?.comments?.[0]?.count || 0;
+
+          return {
+            ...post,
+            comments: [
+              {
+                count: Math.max(0, currentCount - 1),
+              },
+            ],
+          };
+        })
+      );
+    }
+  }
+
+
+
+  async function handleLikeEvent(payload) {
+
+    if (payload.eventType === 'INSERT') {
+      const postId = payload.new?.postId;
+      const newLike = payload.new;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (String(post.id) !== String(postId)) {
+            return post;
+          }
+
+          return {
+            ...post,
+            postLikes: [
+              ...(post.postLikes || []),
+              newLike,
+            ],
+          };
+        })
+      );
+    }
+
+    if (payload.eventType === 'DELETE') {
+      const postId = payload.old?.postId;
+      const deletedLikeId = payload.old?.id;
+
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (String(post.id) !== String(postId)) {
+            return post;
+          }
+
+          return {
+            ...post,
+            postLikes: (post.postLikes || []).filter(
+              (like) => like.id !== deletedLikeId
+            ),
+          };
+        })
+      );
+    }
+  }
+
   useEffect(() => {
-    let postChannel: ReturnType<typeof supabase.channel> | null = null;
+    let postChannel = null;
 
     const setupRealtime = async () => {
       const existingChannels = supabase.getChannels();
@@ -70,6 +171,42 @@ const Home = () => {
           },
           handlePostEvent
         )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'comments',
+          },
+          handleCommentEvent
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'comments',
+          },
+          handleCommentEvent
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'postLikes',
+          },
+          handleLikeEvent
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'postLikes',
+          },
+          handleLikeEvent
+        )
         .subscribe();
 
       await getPosts();
@@ -85,6 +222,20 @@ const Home = () => {
     };
   }, []);
 
+  useFocusEffect(
+    useCallback(() => {
+      const refreshPosts = async () => {
+        const res = await fetchPosts(limit);
+
+        if (res.success) {
+          setPosts(res.data);
+        }
+      };
+
+      refreshPosts();
+    }, [])
+  );
+
   // async function onLogout() {
   //   setAuth(null);
   //   const { error } = await supabase.auth.signOut();
@@ -92,6 +243,7 @@ const Home = () => {
   //     Alert.alert('Sign out', 'Error signing out')
   //   }
   // }
+
   return (
     <ScreenWrapper bg='white'>
       <View style={styles.container}>

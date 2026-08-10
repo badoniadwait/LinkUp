@@ -32,13 +32,29 @@ const tagStyles = {
     },
 }
 
-const PostCard = ({ item, currentUser, router, hasShadow = true, showMoreIcon = true }: {
+const PostCard = ({
+    item,
+    currentUser,
+    router,
+    hasShadow = true,
+    showMoreIcon = true,
+    onLikeChange,
+    onDelete,
+    onEdit,
+    showDelete = false,
+}: {
     item: any;
     currentUser: User | null;
     router: Router;
     hasShadow?: boolean;
     showMoreIcon?: boolean;
+    onLikeChange?: (likes: any[]) => void;
+    showDelete?: boolean;
+    onDelete?: () => void;
+    onEdit?: () => void;
 }) => {
+
+
 
     const [loading, setLoading] = useState(false);
     async function onShare() {
@@ -93,39 +109,62 @@ const PostCard = ({ item, currentUser, router, hasShadow = true, showMoreIcon = 
     }
 
     async function onLike() {
+        const oldLikes = likes;
 
         if (liked) {
-            let updateLikes = likes.filter((like) => like.userId != currentUser?.id)
+            const updatedLikes = likes.filter(
+                (like) => like.userId !== currentUser?.id
+            );
 
-            setLikes([...updateLikes])
-            let res = await removePostLike(item?.id, currentUser?.id);
+            setLikes(updatedLikes);
+
+            onLikeChange?.(updatedLikes);
+
+            const res = await removePostLike(
+                item?.id,
+                currentUser?.id
+            );
 
             if (!res?.success) {
-                Alert.alert('Post', 'something went wrong!');
+                setLikes(oldLikes);
+                onLikeChange?.(oldLikes);
+
+                Alert.alert('Post', 'Something went wrong!');
             }
-        }
-        else {
-            let data = {
+
+        } else {
+            const newLike = {
                 userId: currentUser?.id,
                 postId: item?.id,
-            }
+            };
 
-            setLikes([...likes, data])
-            let res = await createPostLike(data);
+            const updatedLikes = [
+                ...likes,
+                newLike,
+            ];
+
+            // instant UI
+            setLikes(updatedLikes);
+
+            // update PostDetails post state
+            onLikeChange?.(updatedLikes);
+
+            const res = await createPostLike(newLike);
 
             if (!res?.success) {
-                Alert.alert('Post', 'something went wrong!');
+                setLikes(oldLikes);
+                onLikeChange?.(oldLikes);
+
+                Alert.alert('Post', 'Something went wrong!');
             }
         }
-
-
     }
 
     const [likes, setLikes] = useState([]);
 
     useEffect(() => {
-        setLikes(item?.postLikes);
-    }, [])
+        setLikes(item?.postLikes || []);
+    }, [item?.postLikes]);
 
     let liked = likes.filter((like) => like.userId == currentUser?.id)[0] ? true : false;
 
@@ -154,6 +193,21 @@ const PostCard = ({ item, currentUser, router, hasShadow = true, showMoreIcon = 
         router.push({ pathname: '/postDetails', params: { postId: item?.id } })
     }
 
+
+    function handlePostDelete() {
+        Alert.alert('Confirm', 'Delete comment?', [
+            {
+                text: 'No',
+                style: 'cancel'
+            }, {
+                text: 'Yes',
+                onPress: () => onDelete?.(item),
+                style: 'destructive'
+            }
+        ])
+    }
+
+
     return (
         <View style={[styles.container, hasShadow && shadowStyles]}>
             <View style={styles.header}>
@@ -175,6 +229,19 @@ const PostCard = ({ item, currentUser, router, hasShadow = true, showMoreIcon = 
                         <TouchableOpacity onPress={openPostDetails}>
                             <Icon name='threeDotsHorizontal' size={hp(3.5)} strokeWidth={3} color={theme.colors.text}></Icon>
                         </TouchableOpacity>
+                    )
+                }
+
+                {
+                    showDelete && currentUser?.id == item?.user.id && (
+                        <View style={styles.actions}>
+                            <TouchableOpacity onPress={() => onEdit(item)}>
+                                <Icon name='edit' size={hp(2.5)} color={theme.colors.primary}></Icon>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handlePostDelete}>
+                                <Icon name='delete' size={hp(2.5)} color={theme.colors.rose}></Icon>
+                            </TouchableOpacity>
+                        </View>
                     )
                 }
 
@@ -325,5 +392,10 @@ const styles = StyleSheet.create({
         fontSize: hp(1.7),
         color: theme.colors.textLight,
         fontWeight: theme.fonts.semibold,
+    },
+    actions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
     },
 });
