@@ -3,12 +3,13 @@ import { CommentItem } from '@/components/CommentItem';
 import Input from '@/components/Input';
 import Loading from '@/components/Loading';
 import PostCard from '@/components/PostCard';
+import ScreenWrapper from '@/components/ScreenWrapper';
 import { Comment } from '@/components/types/Comment';
 import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { hp, wp } from '@/helpers/common';
 import { supabase } from '@/lib/supabase';
-import { createComment, fetchPostDetails, removeComment } from '@/service/postService';
+import { createComment, fetchPostDetails, removeComment, removePost } from '@/service/postService';
 import { getUserdata } from '@/service/userService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -32,14 +33,14 @@ const PostDetails = () => {
   const commentRef = useRef<string | null>('');
 
   async function handleNewComment(payload) {
-    if(payload.new) {
-      let newComment = {...payload.new};
+    if (payload.new) {
+      let newComment = { ...payload.new };
       let res = await getUserdata(newComment.userId);
       newComment.user = res.success ? res?.data : {};
       setPost((prev) => {
         return {
           ...prev,
-          comments:[newComment, ...prev.comments]
+          comments: [newComment, ...prev.comments]
         }
       })
     }
@@ -51,25 +52,28 @@ const PostDetails = () => {
     }
   }, [postId]);
 
+
   useEffect(() => {
-    let commentChannel = supabase
-      .channel('comments')
+    if (!postId) return;
+
+    const commentChannel = supabase
+      .channel(`comments-${postId}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'comments',
-          filter: `postId=eq.${postId}`
+          filter: `postId=eq.${postId}`,
         },
         handleNewComment
       )
       .subscribe();
 
-    getPostDetails(postId);
-
-    return () => { supabase.removeChannel(commentChannel); }
-  }, []);
+    return () => {
+      supabase.removeChannel(commentChannel);
+    };
+  }, [postId]);
 
   async function getPostDetails(id: string | string[]) {
     setStartLoading(true);
@@ -133,14 +137,45 @@ const PostDetails = () => {
       Alert.alert('Comment', res.msg);
     }
   }
+
+  async function onDeletePost(item) {
+    let res = await removePost(post?.id);
+
+    if ((await res).success) {
+      router.back();
+    }
+    else {
+      Alert.alert('Post', res.msg)
+    }
+  }
+
+  async function onEditPost(item) {
+    console.log('edit Post')
+    router.back();
+    router.push({pathname: '/newPost', params: {...item}});
+  }
+
   return (
-    <View style={styles.container}>
+    <ScreenWrapper style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list} >
-        <PostCard item={{ ...post, comments: [{ count: post?.comments?.length }] }}
+        <PostCard
+          item={{
+            ...post,
+            comments: [{ count: post?.comments?.length }],
+          }}
           currentUser={user}
           router={router}
           hasShadow={false}
           showMoreIcon={false}
+          onLikeChange={(likes) => {
+            setPost((prev) => ({
+              ...prev,
+              postLikes: likes,
+            }));
+          }}
+          showDelete={true}
+          onDelete={onDeletePost}
+          onEdit={onEditPost}
         />
 
         <View style={styles.inputContainer}>
@@ -165,29 +200,29 @@ const PostDetails = () => {
         </View>
 
         <View style={styles.commentList}>
-            {
-              post?.comments?.map((comment) => (
-                <CommentItem
-                  key={comment?.id?.toString()}
-                  item={comment}
-                  canDelete={user?.id == comment.userId || user?.id == post.userId}
-                  onDelete={onDelete}
-                />
-              ))
-            }
+          {
+            post?.comments?.map((comment) => (
+              <CommentItem
+                key={comment?.id?.toString()}
+                item={comment}
+                canDelete={user?.id == comment.userId || user?.id == post.userId}
+                onDelete={onDelete}
+              />
+            ))
+          }
 
-            {
-              post?.comments?.length == 0 && (
-                <Text style={styles.noComments}>
-                  Be first to comment on this post!
-                </Text>
-              )
-            }
+          {
+            post?.comments?.length == 0 && (
+              <Text style={styles.noComments}>
+                Be first to comment on this post!
+              </Text>
+            )
+          }
 
         </View>
 
       </ScrollView>
-    </View>
+    </ScreenWrapper>
   )
 }
 
@@ -208,7 +243,7 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: wp(4),
     paddingTop: hp(1),
-    paddingBottom: hp(2),
+    paddingBottom: hp(4),
   },
 
   notFound: {
@@ -220,8 +255,10 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(3),
-    paddingTop: hp(1.2),
+    gap: wp(2),
+    paddingTop: hp(1.5),
+    paddingBottom: hp(1),
+    paddingHorizontal: wp(1),
   },
 
   loading: {
@@ -243,12 +280,15 @@ const styles = StyleSheet.create({
   },
 
   commentList: {
-    marginVertical: 15,
-    gap: 17,
+    marginTop: hp(2),
+    marginBottom: hp(2),
+    paddingHorizontal: wp(1),
+    gap: hp(2),
   },
 
   noComments: {
     color: theme.colors.text,
-    marginLeft: 5,
+    marginTop: hp(1),
+    marginLeft: wp(1),
   },
-})
+});

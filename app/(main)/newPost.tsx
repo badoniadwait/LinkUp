@@ -11,19 +11,32 @@ import { getSupabaseFileUrl } from '@/service/imageService'
 import { createUpdatePost } from '@/service/postService'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import { VideoView, useVideoPlayer } from 'expo-video'
-import React, { useRef, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { RichEditor } from 'react-native-pell-rich-editor'
 
 const NewPost = () => {
 
+  const post = useLocalSearchParams();
+  
   const { user } = useAuth();
   const bodyRef = useRef('');
   const editorRef = useRef<RichEditor | null>(null); const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [file, setFile] = useState<ImagePicker.ImagePickerAsset | string | null>(null);
+
+  useEffect(() => {
+    if(post && post.id) {
+      bodyRef.current = post.body;
+      setFile(post.file || null);
+      setTimeout(() => {
+        editorRef?.current?.setContentHTML(post.body);
+      },300)
+    }
+  }, []);
+  
   async function onPick(
     isImage: boolean
   ) {
@@ -95,6 +108,10 @@ const NewPost = () => {
     let data = {
       file, body: bodyRef.current, userId: user?.id,
     }
+
+    if(post && post.id) data.id = post.id
+
+
 
     setLoading(true);
 
@@ -193,7 +210,7 @@ const NewPost = () => {
         <Button buttonStyle={{
           height: hp(6.2)
         }}
-          title='Post'
+          title={post && post.id? 'Update' : 'Post'}
           loading={loading}
           hasShadow={false}
           onPress={onSubmit}

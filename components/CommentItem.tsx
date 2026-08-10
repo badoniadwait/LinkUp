@@ -25,7 +25,7 @@ export const CommentItem = ({ item, canDelete = false, onDelete }: { item: Comme
 
     return (
         <View style={styles.container}>
-            <Avatar uri={item?.user?.image} />
+            <Avatar uri={item?.user?.image} size={66}/>
             <View style={styles.content}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <View style={styles.nameContainer}>
