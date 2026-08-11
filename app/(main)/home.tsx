@@ -148,17 +148,33 @@ const Home = () => {
     }
   }
 
+  async function handleNotificationEvent(payload) {
+    if (payload.eventType === 'INSERT') {
+
+      // Only handle notifications for the logged-in user
+      if (String(payload.new?.receiverId) !== String(user?.id)) {
+        return;
+      }
+    }
+  }
+
   useEffect(() => {
     let postChannel = null;
+    let notificationChannel = null;
 
     const setupRealtime = async () => {
       const existingChannels = supabase.getChannels();
 
       for (const channel of existingChannels) {
-        if (channel.topic === 'realtime:posts') {
+        if (
+          channel.topic === 'realtime:posts' ||
+          channel.topic === 'realtime:notifications'
+        ) {
           await supabase.removeChannel(channel);
         }
       }
+
+
 
       postChannel = supabase
         .channel('posts')
@@ -209,18 +225,40 @@ const Home = () => {
         )
         .subscribe();
 
+
+      notificationChannel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `receiverId=eq.${user?.id}`,
+          },
+          handleNotificationEvent
+        )
+        .subscribe();
+
       await getPosts();
     };
 
-    setupRealtime();
+    if (user?.id) {
+      setupRealtime();
+    }
 
     return () => {
       if (postChannel) {
         supabase.removeChannel(postChannel);
         postChannel = null;
       }
+
+      if (notificationChannel) {
+        supabase.removeChannel(notificationChannel);
+        notificationChannel = null;
+      }
     };
-  }, []);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {

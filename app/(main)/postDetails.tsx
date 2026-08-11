@@ -9,6 +9,7 @@ import { theme } from '@/constants/theme';
 import { useAuth } from '@/contexts/AuthContext';
 import { hp, wp } from '@/helpers/common';
 import { supabase } from '@/lib/supabase';
+import { createNotification } from '@/service/notification';
 import { createComment, fetchPostDetails, removeComment, removePost } from '@/service/postService';
 import { getUserdata } from '@/service/userService';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -21,7 +22,7 @@ const PostDetails = () => {
 
   const router = useRouter();
 
-  const { postId } = useLocalSearchParams();
+  const { postId, commentId } = useLocalSearchParams();
 
   const [post, setPost] = useState(null);
 
@@ -116,6 +117,21 @@ const PostDetails = () => {
     setLoading(false);
 
     if (res.success) {
+
+      if (user?.id != post.userId) {
+        const notify = {
+          senderId: user?.id,
+          receiverId: post.userId,
+          title: 'commented on your post',
+          data: JSON.stringify({
+            postId: post.id,
+            commentId: res.data.id,
+          }),
+        }
+
+        createNotification(notify)
+      }
+
       inputRef.current?.clear();
       inputRef.current = "";
     }
@@ -150,10 +166,10 @@ const PostDetails = () => {
   }
 
   async function onEditPost(item) {
-    console.log('edit Post')
     router.back();
-    router.push({pathname: '/newPost', params: {...item}});
+    router.push({ pathname: '/newPost', params: { ...item } });
   }
+
 
   return (
     <ScreenWrapper style={styles.container}>
@@ -206,6 +222,7 @@ const PostDetails = () => {
                 key={comment?.id?.toString()}
                 item={comment}
                 canDelete={user?.id == comment.userId || user?.id == post.userId}
+                highlight={String(commentId) === String(comment?.id)}
                 onDelete={onDelete}
               />
             ))
