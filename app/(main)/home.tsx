@@ -22,6 +22,7 @@ const Home = () => {
 
   const [posts, setPosts] = useState([]);
   const [hasMore, setHasMore] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
 
   const getPosts = async () => {
@@ -155,6 +156,8 @@ const Home = () => {
       if (String(payload.new?.receiverId) !== String(user?.id)) {
         return;
       }
+
+      setNotificationCount((prev) => prev + 1);
     }
   }
 
@@ -288,7 +291,16 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>LinkUp</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => router.push('/(main)/notifications')}><Icon name='heart' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} /></Pressable>
+            <Pressable onPress={() => router.push('/(main)/notifications')}>
+              <View style={styles.notificationIcon}>
+                <Icon name='heart' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{notificationCount > 99 ? '99+' : notificationCount}</Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
             <Pressable onPress={() => router.push('/(main)/newPost')}><Icon name='plus' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} /></Pressable>
             <Pressable onPress={() => router.push('/(main)/profile')}><Avatar uri={user?.image} size={hp(4.3)} rounded={theme.radius.sm} style={{ borderWidth: 2 }} /></Pressable>
 
@@ -373,5 +385,25 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     fontWeight: theme.fonts.medium,
     marginTop: hp(1),
+  },
+  notificationIcon: {
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -hp(0.6),
+    left: -wp(1.2),
+    minWidth: hp(1.8),
+    height: hp(1.8),
+    borderRadius: hp(0.9),
+    backgroundColor: theme.colors.rose,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(0.4),
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: hp(1.1),
+    fontWeight: theme.fonts.bold,
   },
 });
