@@ -22,6 +22,7 @@ const Home = () => {
 
   const [posts, setPosts] = useState([]);
   const [hasMore, setHasMore] = useState(true);
+  const [notificationCount, setNotificationCount] = useState(0);
 
 
   const getPosts = async () => {
@@ -148,17 +149,35 @@ const Home = () => {
     }
   }
 
+  async function handleNotificationEvent(payload) {
+    if (payload.eventType === 'INSERT') {
+
+      // Only handle notifications for the logged-in user
+      if (String(payload.new?.receiverId) !== String(user?.id)) {
+        return;
+      }
+
+      setNotificationCount((prev) => prev + 1);
+    }
+  }
+
   useEffect(() => {
     let postChannel = null;
+    let notificationChannel = null;
 
     const setupRealtime = async () => {
       const existingChannels = supabase.getChannels();
 
       for (const channel of existingChannels) {
-        if (channel.topic === 'realtime:posts') {
+        if (
+          channel.topic === 'realtime:posts' ||
+          channel.topic === 'realtime:notifications'
+        ) {
           await supabase.removeChannel(channel);
         }
       }
+
+
 
       postChannel = supabase
         .channel('posts')
@@ -209,18 +228,40 @@ const Home = () => {
         )
         .subscribe();
 
+
+      notificationChannel = supabase
+        .channel('notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `receiverId=eq.${user?.id}`,
+          },
+          handleNotificationEvent
+        )
+        .subscribe();
+
       await getPosts();
     };
 
-    setupRealtime();
+    if (user?.id) {
+      setupRealtime();
+    }
 
     return () => {
       if (postChannel) {
         supabase.removeChannel(postChannel);
         postChannel = null;
       }
+
+      if (notificationChannel) {
+        supabase.removeChannel(notificationChannel);
+        notificationChannel = null;
+      }
     };
-  }, []);
+  }, [user?.id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -250,7 +291,16 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>LinkUp</Text>
           <View style={styles.icons}>
-            <Pressable onPress={() => router.push('/(main)/notifications')}><Icon name='heart' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} /></Pressable>
+            <Pressable onPress={() => router.push('/(main)/notifications')}>
+              <View style={styles.notificationIcon}>
+                <Icon name='heart' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} />
+                {notificationCount > 0 && (
+                  <View style={styles.notificationBadge}>
+                    <Text style={styles.notificationBadgeText}>{notificationCount > 99 ? '99+' : notificationCount}</Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
             <Pressable onPress={() => router.push('/(main)/newPost')}><Icon name='plus' size={hp(3.2)} strokeWidth={2} color={theme.colors.text} /></Pressable>
             <Pressable onPress={() => router.push('/(main)/profile')}><Avatar uri={user?.image} size={hp(4.3)} rounded={theme.radius.sm} style={{ borderWidth: 2 }} /></Pressable>
 
@@ -335,5 +385,25 @@ const styles = StyleSheet.create({
     color: theme.colors.gray,
     fontWeight: theme.fonts.medium,
     marginTop: hp(1),
+  },
+  notificationIcon: {
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -hp(0.6),
+    left: -wp(1.2),
+    minWidth: hp(1.8),
+    height: hp(1.8),
+    borderRadius: hp(0.9),
+    backgroundColor: theme.colors.rose,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: wp(0.4),
+  },
+  notificationBadgeText: {
+    color: 'white',
+    fontSize: hp(1.1),
+    fontWeight: theme.fonts.bold,
   },
 });
